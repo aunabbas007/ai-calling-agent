@@ -27,7 +27,8 @@ def ai_response(payload: dict):
         "Content-Type": "application/json"
     }
 
-    url = "https://router.huggingface.co/models/google/flan-t5-small"
+    url = "https://router.huggingface.co/hf-inference/models/google/flan-t5-base"
+
 
     response = requests.post(
         url,
@@ -46,10 +47,12 @@ def ai_response(payload: dict):
         # HF returned non-JSON (loading / empty / HTML)
         return {"reply": "AI is loading, please speak again"}
 
-    if isinstance(data, list) and len(data) > 0:
-        reply = data[0].get("generated_text", "No response")
+    if isinstance(data, dict) and "generated_text" in data:
+     reply = data["generated_text"]
+    elif isinstance(data, list) and len(data) > 0:
+     reply = data[0].get("generated_text", "No response")
     else:
-        reply = "AI could not understand"
+     reply = "AI could not respond"
 
     return {"reply": reply}
 import threading

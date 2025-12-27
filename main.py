@@ -29,7 +29,7 @@ def ai_response(payload: dict):
 
     # Model name (you can choose another free model)
     url = "https://router.huggingface.co/models/google/flan-t5-small"
-"
+
 
     data = {"inputs": user_text}
 

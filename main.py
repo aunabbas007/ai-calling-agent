@@ -1,13 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from openai import OpenAI
-
-# 🔑 PUT YOUR API KEY HERE
-client = OpenAI(api_key="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")
+import requests
+import os
 
 app = FastAPI()
 
-# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,24 +12,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+HF_TOKEN = "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"  # paste your HuggingFace token
+
 @app.get("/")
 def home():
-    return {"message": "ChatGPT Voice Backend Running"}
+    return {"status": "Backend with HF working"}
 
 @app.post("/ai-response")
 def ai_response(payload: dict):
     user_text = payload.get("text", "")
 
-    if not user_text:
-        return {"reply": "I did not hear anything."}
+    headers = {
+        "Authorization": f"Bearer {HF_TOKEN}",
+        "Content-Type": "application/json"
+    }
 
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a friendly AI assistant."},
-            {"role": "user", "content": user_text}
-        ]
-    )
+    # Model name (you can choose another free model)
+    url = "https://api-inference.huggingface.co/models/google/flan-t5-small"
 
-    ai_reply = response.choices[0].message.content
-    return {"reply": ai_reply}
+    data = {"inputs": user_text}
+
+    response = requests.post(url, headers=headers, json=data)
+
+    # Some HF models return list of text
+    if isinstance(response.json(), list):
+        reply = response.json()[0]["generated_text"]
+    else:
+        # fallback
+        reply = response.json().get("generated_text", str(response.json()))
+
+    return {"reply": reply}

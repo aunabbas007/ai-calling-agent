@@ -1,16 +1,14 @@
 from fastapi import FastAPI
-from twilio.twiml.voice_response import VoiceResponse
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
 @app.get("/")
 def home():
-    return {"message": "AI Calling Agent backend is running"}
+    return {"message": "AI Browser Voice Demo Backend Running"}
 
-@app.post("/incoming-call")
-def incoming_call():
-    response = VoiceResponse()
-    response.say(
-        "Hello. This is the incoming call test. Your AI calling agent is working."
-    )
-    return str(response)
+@app.post("/ai-response")
+def ai_response(data: dict):
+    user_text = data.get("text", "")
+    reply = f"You said {user_text}. This is a browser based AI demo."
+    return JSONResponse({"reply": reply})

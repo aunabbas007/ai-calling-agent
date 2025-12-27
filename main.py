@@ -27,19 +27,29 @@ def ai_response(payload: dict):
         "Content-Type": "application/json"
     }
 
-    # Model name (you can choose another free model)
     url = "https://router.huggingface.co/models/google/flan-t5-small"
 
+    response = requests.post(
+        url,
+        headers=headers,
+        json={"inputs": user_text},
+        timeout=30
+    )
 
-    data = {"inputs": user_text}
+    # 🔐 SAFETY CHECK
+    if response.status_code != 200:
+        return {"reply": "AI is waking up, please try again"}
 
-    response = requests.post(url, headers=headers, json=data)
+    try:
+        data = response.json()
+    except Exception:
+        # HF returned non-JSON (loading / empty / HTML)
+        return {"reply": "AI is loading, please speak again"}
 
-    # Some HF models return list of text
-    if isinstance(response.json(), list):
-        reply = response.json()[0]["generated_text"]
+    if isinstance(data, list) and len(data) > 0:
+        reply = data[0].get("generated_text", "No response")
     else:
-        # fallback
-        reply = response.json().get("generated_text", str(response.json()))
+        reply = "AI could not understand"
 
     return {"reply": reply}
+

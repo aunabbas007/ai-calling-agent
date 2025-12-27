@@ -52,4 +52,19 @@ def ai_response(payload: dict):
         reply = "AI could not understand"
 
     return {"reply": reply}
+import threading
+
+def warm_up():
+    try:
+        requests.post(
+            "https://router.huggingface.co/models/google/flan-t5-small",
+            headers={"Authorization": f"Bearer {HF_TOKEN}"},
+            json={"inputs": "Hello"},
+            timeout=30
+        )
+    except:
+        pass
+
+threading.Thread(target=warm_up).start()
+
 
